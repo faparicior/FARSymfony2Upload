@@ -2,18 +2,23 @@
 
 namespace FARSymfony2UploadBundle\Controller;
 
+use FARSymfony2UploadBundle\BlueImp\UploadHandler;
+use FARSymfony2UploadBundle\FARSymfony2UploadBundle;
+use FARSymfony2UploadBundle\Lib\FileUploadWrapper;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 
 class DefaultController extends Controller
 {
     /**
-     * @Route("/hello/{name}")
-     * @Template()
+     * @Route("/upload")
      */
-    public function indexAction($name)
+    public function uploadAction()
     {
-        return array('name' => $name);
+        //$upload = new FileUploadWrapper();
+
+        $upload = new UploadHandler();
+        $upload->
     }
 }

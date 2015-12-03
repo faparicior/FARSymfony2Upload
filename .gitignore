@@ -9,3 +9,10 @@
 /composer.phar
 /vendor/
 /web/bundles/
+
+.DS_Store
+.rules/
+.idea/
+app/config/parameters_local.yml
+symfony
+*~
