@@ -1,0 +1,3 @@
+parameters:
+    far_upload_bundle:
+        temp_path: "%kernel.root_dir%/../web/tmp"

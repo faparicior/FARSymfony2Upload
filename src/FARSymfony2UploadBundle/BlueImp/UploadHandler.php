@@ -9,7 +9,6 @@
  * Licensed under the MIT license:
  * http://www.opensource.org/licenses/MIT
  */
-
 namespace FARSymfony2UploadBundle\BlueImp;
 
 class UploadHandler
