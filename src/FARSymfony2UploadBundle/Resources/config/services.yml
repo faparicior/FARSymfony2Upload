@@ -1,3 +1,5 @@
 parameters:
     far_upload_bundle:
         temp_path: "%kernel.root_dir%/../web/tmp"
+        thumbnail_driver: "gd"
+        thumbnail_size: "80x80"
