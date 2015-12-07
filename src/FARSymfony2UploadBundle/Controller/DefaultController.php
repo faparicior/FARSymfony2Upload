@@ -108,10 +108,17 @@ class DefaultController extends Controller
         $parameters = $this->getParameter('far_upload_bundle');
         $thumbnail_size = explode('x', $parameters['thumbnail_size']);
 
-        // TODO: Usar según driver en configuración
-        $imagine = new \Imagine\Gd\Imagine();
-     //   $imagine = new \Imagine\Gmagick\Imagine();
-     //   $imagine = new \Imagine\Imagick\Imagine();
+        switch ($this->getParameter('thumbnail_driver')) {
+            case 'gd':
+                $imagine = new \Imagine\Gd\Imagine();
+                break;
+            case 'gmagik':
+                $imagine = new \Imagine\Gmagick\Imagine();
+                break;
+            default:
+                $imagine = new \Imagine\Imagick\Imagine();
+        }
+
         $size    = new \Imagine\Image\Box($thumbnail_size[0], $thumbnail_size[1]);
         $mode = \Imagine\Image\ImageInterface::THUMBNAIL_INSET;
 
@@ -119,7 +126,5 @@ class DefaultController extends Controller
         $imagine->open($properties['temp_dir'].'/'.$properties['name_uid'])
                 ->thumbnail($size, $mode)
                 ->save($properties['temp_dir'].'/'.$properties['thumbnail_name']);
-
-
     }
 }
