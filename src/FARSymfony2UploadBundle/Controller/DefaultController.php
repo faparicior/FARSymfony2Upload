@@ -21,7 +21,6 @@ class DefaultController extends Controller
      */
     public function uploadAction(Request $request, $id_session)
     {
-        //$id_session = $request->query->get('id_session');
         // TODO: Gestionar si es un POST con DELETE Y BORRAR si procede
         /* @var FileBag $filebag */
         foreach ($request->files as $filebag) {
@@ -33,7 +32,7 @@ class DefaultController extends Controller
                 // TODO: Gestionar nombres
                 $this->createThumbnail($properties);
                 // TODO: Responder con json
-                $response = $this->getjQueryUploadResponse($properties, $request);
+                $response = $this->getjQueryUploadResponse($properties, $request, $id_session);
                 return new JsonResponse(array('files' => $response));
                 /*
                     {
@@ -53,6 +52,7 @@ class DefaultController extends Controller
                 */
             }
         }
+        return new JsonResponse(array('files' => ''));
     }
 
     /**
@@ -66,9 +66,11 @@ class DefaultController extends Controller
 
         $response[0]['url'] = $request->getBaseUrl().'/tmp/'.
                               $properties['session'].'/'.
+                              $properties['id_session'].'/'.
                               $properties['name_uid'];
         $response[0]['thumbnailUrl'] = $request->getBaseUrl().'/tmp/'.
                                        $properties['session'].'/'.
+                                       $properties['id_session'].'/'.
                                        $properties['thumbnail_name'];
         $response[0]['name'] = $properties['name'];
         $response[0]['type'] = $properties['mimetype'];
@@ -91,7 +93,8 @@ class DefaultController extends Controller
 
         $properties['original_name'] = $file->getClientOriginalName();
         $properties['extension'] = $file->guessExtension();
-        $properties['name'] = $file->getBasename();
+        $original_name = pathinfo($properties['original_name']);
+        $properties['name'] = $original_name['filename'];
         $properties['name_uid'] = uniqid().'.'.$properties['extension'];
         $properties['thumbnail_name'] = $properties['name'].'_'.
                                         $parameters['thumbnail_size'].'.'.
@@ -100,9 +103,10 @@ class DefaultController extends Controller
         $properties['maxfilesize'] = $file->getMaxFilesize();
         $properties['mimetype'] = $file->getMimeType();
         $properties['session'] = $session->getId();
+        $properties['id_session'] = $id_session;
         $properties['temp_dir'] = $parameters['temp_path'].'/'.
                                   $session->getId().'/'.
-                                  $id_session;
+                                  $properties['id_session'];
 
         return $properties;
     }
@@ -112,7 +116,7 @@ class DefaultController extends Controller
         $parameters = $this->getParameter('far_upload_bundle');
         $thumbnail_size = explode('x', $parameters['thumbnail_size']);
 
-        switch ($this->getParameter('thumbnail_driver')) {
+        switch ($parameters['thumbnail_driver']) {
             case 'gd':
                 $imagine = new \Imagine\Gd\Imagine();
                 break;
