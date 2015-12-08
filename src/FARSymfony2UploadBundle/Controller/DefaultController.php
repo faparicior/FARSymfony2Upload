@@ -13,19 +13,21 @@ use Symfony\Component\HttpFoundation\Session\Session;
 class DefaultController extends Controller
 {
     /**
-     * @Route("/upload")
+     * @Route("/upload/{id_session}")
      *
      * @param Request $request
+     * @param string $id_session
      * @return JsonResponse
      */
-    public function uploadAction(Request $request)
+    public function uploadAction(Request $request, $id_session)
     {
+        //$id_session = $request->query->get('id_session');
         // TODO: Gestionar si es un POST con DELETE Y BORRAR si procede
         /* @var FileBag $filebag */
         foreach ($request->files as $filebag) {
             /* @var UploadedFile $file */
             foreach ($filebag as $file) {
-                $properties = $this->getFileProperties($file);
+                $properties = $this->getFileProperties($file, $id_session);
                 // TODO: Validar archivo
                 $file->move($properties['temp_dir'], $properties['name_uid']);
                 // TODO: Gestionar nombres
@@ -81,7 +83,7 @@ class DefaultController extends Controller
      * @param UploadedFile $file
      * @return array()
      */
-    private function getFileProperties($file)
+    private function getFileProperties($file, $id_session)
     {
         $session = new Session();
         $properties = array();
@@ -98,7 +100,9 @@ class DefaultController extends Controller
         $properties['maxfilesize'] = $file->getMaxFilesize();
         $properties['mimetype'] = $file->getMimeType();
         $properties['session'] = $session->getId();
-        $properties['temp_dir'] = $parameters['temp_path'].'/'.$session->getId();
+        $properties['temp_dir'] = $parameters['temp_path'].'/'.
+                                  $session->getId().'/'.
+                                  $id_session;
 
         return $properties;
     }
