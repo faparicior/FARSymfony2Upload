@@ -13,6 +13,7 @@
 .DS_Store
 .rules/
 .idea/
+.idea/workspace.xml
 /web/tmp/
 app/config/parameters_local.yml
 symfony
