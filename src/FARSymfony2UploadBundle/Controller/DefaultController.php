@@ -17,43 +17,82 @@ class DefaultController extends Controller
      *
      * @param Request $request
      * @param string $id_session
+     *
      * @return JsonResponse
      */
     public function uploadAction(Request $request, $id_session)
     {
         // TODO: Gestionar si es un POST con DELETE Y BORRAR si procede
-        /* @var FileBag $filebag */
-        foreach ($request->files as $filebag) {
-            /* @var UploadedFile $file */
-            foreach ($filebag as $file) {
-                $properties = $this->getFileProperties($file, $id_session);
-                // TODO: Validar archivo
-                $file->move($properties['temp_dir'], $properties['name_uid']);
-                // TODO: Gestionar nombres
-                $this->createThumbnail($properties);
-                // TODO: Responder con json
-                $response = $this->getjQueryUploadResponse($properties, $request, $id_session);
-                return new JsonResponse(array('files' => $response));
-                /*
-                    {
-                        "files":
-                        [
-                            {
-                                "url":"http://jquery-file-upload.appspot.com/image%2Fpng/550487655/Captura%20de%20pantalla%20de%202015-12-04%2010%3A03%3A35.png",
-                                "thumbnailUrl":"http://jquery-file-upload.appspot.com/image%2Fpng/550487655/Captura%20de%20pantalla%20de%202015-12-04%2010%3A03%3A35.png.80x80.png",
-                                "name":"Captura de pantalla de 2015-12-04 10:03:35.png",
-                                "type":"image/png",
-                                "size":21921,
-                                "deleteUrl":"http://jquery-file-upload.appspot.com/image%2Fpng/550487655/Captura%20de%20pantalla%20de%202015-12-04%2010%3A03%3A35.png",
-                                "deleteType":"DELETE"
-                            }
-                        ]
-                    }
-                */
+        if ($request->getMethod() == 'POST') {
+            /* @var FileBag $filebag */
+            foreach ($request->files as $filebag) {
+                /* @var UploadedFile $file */
+                foreach ($filebag as $file) {
+                    $properties = $this->getFileProperties($file, $id_session);
+                    // TODO: Validar archivo
+                    $file->move($properties['temp_dir'], $properties['name_uid']);
+                    // TODO: Gestionar nombres
+                    $this->createThumbnail($properties);
+                    // TODO: Responder con json
+                    $response = $this->getjQueryUploadResponse($properties, $request, $id_session);
+                    return new JsonResponse(array('files' => $response));
+                }
             }
         }
         return new JsonResponse(array('files' => ''));
     }
+    /**
+     * @Route("/tmp/{php_session}/{id_session}/{image}")
+     *
+     * @param Request $request
+     * @param string $php_session
+     * @param string $id_session
+     * @param string $image
+     *
+     * @return JsonResponse
+     */
+
+    public function deleteAction(Request $request, $php_session, $id_session, $image)
+    {
+        // TODO: Gestionar si es un POST con DELETE Y BORRAR si procede
+        if ($request->getMethod() == 'DELETE') {
+            /* @var FileBag $filebag */
+            foreach ($request->files as $filebag) {
+                /* @var UploadedFile $file */
+                foreach ($filebag as $file) {
+                    $properties = $this->getFileProperties($file, $id_session);
+                    // TODO: Validar archivo
+                    $file->move($properties['temp_dir'], $properties['name_uid']);
+                    // TODO: Gestionar nombres
+                    $this->createThumbnail($properties);
+                    // TODO: Responder con json
+                    $response = $this->getjQueryUploadResponse($properties, $request, $id_session);
+                    return new JsonResponse(array('files' => $response));
+                }
+            }
+        }
+        return new JsonResponse(array('files' => ''));
+    }
+
+
+
+    /*
+    {
+        "files":
+        [
+            {
+                "url":"http://jquery-file-upload.appspot.com/image%2Fpng/550487655/Captura%20de%20pantalla%20de%202015-12-04%2010%3A03%3A35.png",
+                "thumbnailUrl":"http://jquery-file-upload.appspot.com/image%2Fpng/550487655/Captura%20de%20pantalla%20de%202015-12-04%2010%3A03%3A35.png.80x80.png",
+                "name":"Captura de pantalla de 2015-12-04 10:03:35.png",
+                "type":"image/png",
+                "size":21921,
+                "deleteUrl":"http://jquery-file-upload.appspot.com/image%2Fpng/550487655/Captura%20de%20pantalla%20de%202015-12-04%2010%3A03%3A35.png",
+                "deleteType":"DELETE"
+            }
+        ]
+    }
+*/
+
 
     /**
      * @param array $properties
