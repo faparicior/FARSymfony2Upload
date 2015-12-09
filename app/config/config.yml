@@ -31,6 +31,11 @@ framework:
     fragments:       ~
     http_method_override: true
 
+    # Serializer for FOSRestBundle
+    serializer:
+        enabled: true
+
+
 # Twig Configuration
 twig:
     debug:            "%kernel.debug%"
@@ -78,3 +83,16 @@ swiftmailer:
     username:  "%mailer_user%"
     password:  "%mailer_password%"
     spool:     { type: memory }
+
+
+oneup_flysystem:
+    adapters:
+        local_adapter:
+            local:
+                directory: %kernel.root_dir%/../web/
+                writeFlags: ~
+                linkHandling: ~
+    filesystems:
+        my_filesystem:
+            adapter: local_adapter
+            mount: local_filesystem
