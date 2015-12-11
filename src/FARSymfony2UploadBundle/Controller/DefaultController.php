@@ -5,6 +5,8 @@ namespace FARSymfony2UploadBundle\Controller;
 use FOS\RestBundle\Controller\FOSRestController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +34,6 @@ class DefaultController extends FOSRestController
                 $validFile = $this->validateFile($properties);
                 if ($validFile[0] == true) {
                     $file->move($properties['temp_dir'], $properties['name_uid']);
-                    // TODO: Gestionar nombres
                     $this->createThumbnail($properties);
                 }
                 $response = $this->getjQueryUploadResponse($properties, $request, $validFile);
@@ -61,15 +62,13 @@ class DefaultController extends FOSRestController
     public function deleteAction(Request $request, $php_session, $id_session, $image, $action)
     {
         $response = '';
+        $parameters = $this->getParameter('far_upload_bundle');
 
         // TODO: Manejar las dos peticiones
-        if ($request->getMethod() === 'POST' &&
-            $request->request->get('_method') == 'DELETE') {
-
-        }
-
-        if ($action == 'DELETE') {
-            $path = './tmp/'.$php_session.'/'.$id_session.'/';
+        if (($request->getMethod() === 'POST' && $request->request->get('_method') == 'DELETE') ||
+            ($request->getMethod() === 'DELETE' && $action == 'DELETE')
+        ) {
+            $path = $parameters['temp_path'].'/'.$php_session.'/'.$id_session.'/';
             $response = $this->deleteFile($path, $image);
         }
 
@@ -137,15 +136,13 @@ class DefaultController extends FOSRestController
      */
     private function validateUploadMaxFiles($properties, $parameters)
     {
-        $filesystem = $this
-            ->container
-            ->get('oneup_flysystem.mount_manager')
-            ->getFilesystem('local_filesystem');
-
-        $contents = $filesystem->listContents('/tmp/'.$properties['session'].'/'.$properties['id_session']);
+        $finder = new Finder();
+        $countFiles = $finder->files()
+               ->in($parameters['temp_path'].'/'.$properties['session'].'/'.$properties['id_session'])
+               ->count();
 
         /* max_files_upload * 2 because the thumbnails */
-        if (count($contents) < $parameters['max_files_upload']*2) {
+        if ($countFiles < $parameters['max_files_upload']*2) {
             return true;
         }
         return false;
@@ -180,23 +177,38 @@ class DefaultController extends FOSRestController
 
     /**
      * @param $path
-     * @param $image
+     * @param $file
      *
      * @return string
      */
-    private function deleteFile($path, $image)
+    private function deleteFile($path, $file)
     {
         // TODO: Borrar miniaturas PS
+        $filesystem = new Filesystem();
+        $fileTemp = $path.$file;
+        $thumbnail = $path.$this->getFileNameOrThumbnail($file, true);
+
+        if ($filesystem->exists($fileTemp)) {
+            $filesystem->remove($fileTemp);
+        }
+        if ($filesystem->exists($thumbnail)) {
+            $filesystem->remove($thumbnail);
+        }
+        $response[0][$fileTemp] = true;
+
+        return $response;
+    }
+
+    // TODO: Implementar el traspaso de ficheros
+    private function syncFiles()
+    {
         $filesystem = $this
                       ->container
                       ->get('oneup_flysystem.mount_manager')
                       ->getFilesystem('local_filesystem');
 
-        $filesystem->delete($path.$image);
-        $filesystem->delete($path.$this->getFileNameOrThumbnail($image, true));
-        $response[0][$image] = true;
-
-        return $response;
+//        $filesystem->delete($path.$image);
+//        $filesystem->delete($path.$this->getFileNameOrThumbnail($image, true));
     }
 
     /**

@@ -84,7 +84,6 @@ swiftmailer:
     password:  "%mailer_password%"
     spool:     { type: memory }
 
-
 oneup_flysystem:
     adapters:
         local_adapter:

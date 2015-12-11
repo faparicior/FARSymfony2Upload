@@ -21,7 +21,8 @@
         "friendsofsymfony/rest-bundle": "^1.7",
         "imagine/imagine": "^0.6.3",
         "jms/serializer-bundle": "^1.1",
-        "oneup/flysystem-bundle": "^1.2"
+        "oneup/flysystem-bundle": "^1.2",
+        "symfony/finder": "^3.0"
     },
     "require-dev": {
         "sensio/generator-bundle": "~2.3",
