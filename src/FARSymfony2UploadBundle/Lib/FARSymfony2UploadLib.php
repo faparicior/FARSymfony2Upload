@@ -18,6 +18,7 @@ class FARSymfony2UploadLib
     private $parameters;
     private $container;
     private $request;
+    private $trans;
 
     public function __construct(Container $container, Request $request, $options = null)
     {
@@ -26,6 +27,7 @@ class FARSymfony2UploadLib
         $this->request = $request;
         $this->options = $options;
         $this->parameters = $this->container->getParameter('far_upload_bundle');
+        $this->trans = $this->container->get('translator');
     }
 
     /**
@@ -58,14 +60,11 @@ class FARSymfony2UploadLib
     }
 
     /**
-     * @param $id_session
-     * @param $php_session
-     * @param $image
      * @param $action
      *
      * @return bool
      */
-    public function evalDelete($id_session, $php_session, $image, $action)
+    public function evalDelete($action)
     {
         if (($this->request->getMethod() === 'POST' && $this->request->request->get('_method') == 'DELETE') ||
             ($this->request->getMethod() === 'DELETE' && $action == 'DELETE')
@@ -127,10 +126,10 @@ class FARSymfony2UploadLib
         $result = array(true, 'Always fine');
 
         if (!$this->validateFileSize($properties)) {
-            $result = array(false, 'File size exceed maximum allowed');
+            $result = array(false, $this->trans->trans('File size exceed maximum allowed'));
         } else {
             if (!$this->validateFileExtension($properties)) {
-                $result = array(false, 'File type not allowed');
+                $result = array(false, $this->trans->trans('File type not allowed'));
             }
         }
         if (!$this->validateUploadMaxFiles($properties)) {

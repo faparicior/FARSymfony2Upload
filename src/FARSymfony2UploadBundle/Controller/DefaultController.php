@@ -50,11 +50,10 @@ class DefaultController extends FOSRestController
         $response = array();
         // TODO: Manejar el error en caso de no encontrar respuesta de borrado satisfactoria.
         $FARUpload = new FARSymfony2UploadLib($this->container, $request);
-        if ($FARUpload->evalDelete($id_session, $php_session, $image, $action)) {
+        if ($FARUpload->evalDelete($action)) {
             $response = $FARUpload->processDelete($id_session, $php_session, $image);
         }
 
         return new JsonResponse(array('files' => $response));
     }
-
 }

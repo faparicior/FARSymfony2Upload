@@ -35,6 +35,7 @@ framework:
     serializer:
         enabled: true
 
+    translator: { fallbacks: [en] }
 
 # Twig Configuration
 twig:
