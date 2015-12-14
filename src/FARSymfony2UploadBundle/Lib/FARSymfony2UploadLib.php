@@ -126,15 +126,17 @@ class FARSymfony2UploadLib
         $result = array(true, 'Always fine');
 
         if (!$this->validateFileSize($properties)) {
-            $result = array(false, $this->trans->trans('File size exceed maximum allowed'));
+            $result = array(false, $this->trans->trans('File.size.exceed.maximum.allowed'));
         } else {
             if (!$this->validateFileExtension($properties)) {
-                $result = array(false, $this->trans->trans('File type not allowed'));
+                $result = array(false, $this->trans->trans('File.type.not.allowed'));
             }
         }
         if (!$this->validateUploadMaxFiles($properties)) {
-            $result = array(false, 'Too much files for upload. Limit is '.
-                                   $this->parameters['max_files_upload'].' files');
+            $result = array(false, $this->trans->trans(
+                'Too.much.files.for.upload',
+                array('%max_files_upload%' => $this->parameters['max_files_upload'])
+            ));
         }
 
         return $result;

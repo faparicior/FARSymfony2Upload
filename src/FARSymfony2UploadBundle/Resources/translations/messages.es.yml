@@ -1,2 +1,3 @@
-File size exceed maximum allowed: El tamaño del fichero supera lo permitido
-File type not allowed: Tipo de archivo no permitido
+File.size.exceed.maximum.allowed: El tamaño del fichero supera lo permitido
+File.type.not.allowed: Tipo de archivo no permitido
+Too.much.files.for.upload: Demasiados archivos subidos. El límite es %max_files_upload% archivos.
