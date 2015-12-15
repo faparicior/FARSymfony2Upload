@@ -2,12 +2,10 @@
 
 namespace FARSymfony2UploadBundle\Controller;
 
-use FARSymfony2UploadBundle\Lib\FARSymfony2UploadLib;
 use FOS\RestBundle\Controller\FOSRestController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 
 class DefaultController extends FOSRestController
 {
@@ -15,15 +13,14 @@ class DefaultController extends FOSRestController
      * @Route("/upload/{id_session}")
      * @Method("POST")
      *
-     * @param Request $request
      * @param string $id_session
      *
      * @return JsonResponse
      */
-    public function uploadAction(Request $request, $id_session)
+    public function uploadAction($id_session)
     {
 
-        $FARUpload = new FARSymfony2UploadLib($this->container, $request);
+        $FARUpload = $this->get('far_symfony2_upload_bundle.far_symfony2_upload_lib.service');
         $response = $FARUpload->processUpload($id_session);
 
         return new JsonResponse(
@@ -37,7 +34,6 @@ class DefaultController extends FOSRestController
      * @Route("/tmp/{php_session}/{id_session}/{image}_{action}")
      * @Method({"POST", "DELETE"})
      *
-     * @param Request $request
      * @param string $php_session
      * @param string $id_session
      * @param string $image
@@ -45,15 +41,29 @@ class DefaultController extends FOSRestController
      *
      * @return JsonResponse
      */
-    public function deleteAction(Request $request, $php_session, $id_session, $image, $action)
+    public function deleteAction($php_session, $id_session, $image, $action)
     {
         $response = array();
-        // TODO: Manejar el error en caso de no encontrar respuesta de borrado satisfactoria.
-        $FARUpload = new FARSymfony2UploadLib($this->container, $request);
+        // TODO: Manejar el error en caso de no encontrar, respuesta de borrado satisfactoria.
+        $FARUpload = $this->get('far_symfony2_upload_bundle.far_symfony2_upload_lib.service');
         if ($FARUpload->evalDelete($action)) {
             $response = $FARUpload->processDelete($id_session, $php_session, $image);
         }
 
         return new JsonResponse(array('files' => $response));
+    }
+
+    /**
+     * @Route("/save/{id_session}")
+     * @Method("POST")
+     *
+     * @param string $id_session
+     *
+     * @return JsonResponse
+     */
+    public function saveAction($id_session)
+    {
+        $FARUpload = $this->get('far_symfony2_upload_bundle.far_symfony2_upload_lib.service');
+        $response = $FARUpload->saveUpload($id_session);
     }
 }

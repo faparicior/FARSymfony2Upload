@@ -7,7 +7,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 class FARSymfony2UploadLib
@@ -19,15 +19,32 @@ class FARSymfony2UploadLib
     private $container;
     private $request;
     private $trans;
+    private $local_filesystem;
+    private $remote_filesystem;
 
-    public function __construct(Container $container, Request $request, $options = null)
+    /**
+     * @param Container $container
+     * @param RequestStack $request_stack
+     * @param mixed $options
+     */
+    public function __construct(Container $container, RequestStack $request_stack, Session $session, $options = null)
     {
-        $this->session = new Session();
+        $this->session = $session;
         $this->container = $container;
-        $this->request = $request;
+        $this->request = $request_stack->getCurrentRequest();
         $this->options = $options;
         $this->parameters = $this->container->getParameter('far_upload_bundle');
         $this->trans = $this->container->get('translator');
+
+        $this->local_filesystem = $this
+            ->container
+            ->get('oneup_flysystem.mount_manager')
+            ->getFilesystem('local_filesystem');
+
+        $this->remote_filesystem = $this
+            ->container
+            ->get('oneup_flysystem.mount_manager')
+            ->getFilesystem('remote_filesystem');
     }
 
     /**
@@ -50,11 +67,11 @@ class FARSymfony2UploadLib
                     $file->move($properties['temp_dir'], $properties['name_uid']);
                     $this->createThumbnail($properties);
                 }
-                $response['data'] = $this->getjQueryUploadResponse($properties, $this->request, $validFile);
+                $response['data'] = $this->getjQueryUploadResponse($properties, $validFile);
             }
         }
 
-        $response['headers'] = $this->getHeadersJSON($this->request);
+        $response['headers'] = $this->getHeadersJSON();
 
         return $response;
     }
@@ -87,6 +104,41 @@ class FARSymfony2UploadLib
         $response = $this->deleteFile($path, $image);
 
         return $response;
+    }
+
+    /**
+     * @param $id_session
+     *
+     * @return array()
+     */
+    public function saveUpload($id_session)
+    {
+        $php_session = $this->session->getId();
+
+        $listFiles = $this->getListFilesLocal($php_session, $id_session);
+
+        // TODO: Lanzar evento que gestione
+
+        $local_route = $this->getRoutes('local');
+        $this->syncFiles();
+    }
+
+    /**
+     * @param $php_session
+     * @param $id_session
+     *
+     * @return array()
+     */
+    private function getListFilesLocal($php_session, $id_session)
+    {
+
+    }
+
+    private function syncFiles()
+    {
+
+//        $filesystem->delete($path.$image);
+//        $filesystem->delete($path.$this->getFileNameOrThumbnail($image, true));
     }
 
     /**
@@ -126,10 +178,14 @@ class FARSymfony2UploadLib
         $result = array(true, 'Always fine');
 
         if (!$this->validateFileSize($properties)) {
-            $result = array(false, $this->trans->trans('File.size.exceed.maximum.allowed'));
+            $result = array(false, $this->trans->trans(
+                'File.size.exceed.maximum.allowed'
+            ));
         } else {
             if (!$this->validateFileExtension($properties)) {
-                $result = array(false, $this->trans->trans('File.type.not.allowed'));
+                $result = array(false, $this->trans->trans(
+                    'File.type.not.allowed'
+                ));
             }
         }
         if (!$this->validateUploadMaxFiles($properties)) {
@@ -163,7 +219,8 @@ class FARSymfony2UploadLib
     private function validateFileExtension($properties)
     {
 
-        if (array_search($properties['extension'], $this->parameters['file_extensions_allowed'])) {
+        if (array_search($properties['extension'], $this->parameters['file_extensions_allowed'])
+        ) {
             return true;
         }
         return false;
@@ -191,13 +248,11 @@ class FARSymfony2UploadLib
     }
 
     /**
-     * @param Request $request
-     *
      * @return array $header
      */
-    private function getHeadersJSON($request)
+    private function getHeadersJSON()
     {
-        $server_accept = $request->server->get('HTTP_ACCEPT');
+        $server_accept = $this->request->server->get('HTTP_ACCEPT');
 
         if ($server_accept && strpos($server_accept, 'application/json') !== false) {
             $type_header = 'application/json';
@@ -241,18 +296,6 @@ class FARSymfony2UploadLib
         return $response;
     }
 
-    // TODO: Implementar el traspaso de ficheros
-    private function syncFiles()
-    {
-        $filesystem = $this
-            ->container
-            ->get('oneup_flysystem.mount_manager')
-            ->getFilesystem('local_filesystem');
-
-//        $filesystem->delete($path.$image);
-//        $filesystem->delete($path.$this->getFileNameOrThumbnail($image, true));
-    }
-
     /**
      * @param string $filename
      * @param string $thumbnail
@@ -274,24 +317,17 @@ class FARSymfony2UploadLib
 
     /**
      * @param array $properties
-     * @param Request $request
      * @param array $validFile
      *
      * @return array()
      */
-    private function getJQueryUploadResponse($properties, $request, $validFile)
+    private function getJQueryUploadResponse($properties, $validFile)
     {
         $response[0]['name'] = $properties['name'];
         $response[0]['size'] = $properties['size'];
         if ($validFile[0]) {
-            $response[0]['url'] = $request->getBaseUrl().'/tmp/'.
-                $properties['session'].'/'.
-                $properties['id_session'].'/'.
-                $properties['name_uid'];
-            $response[0]['thumbnailUrl'] = $request->getBaseUrl().'/tmp/'.
-                $properties['session'].'/'.
-                $properties['id_session'].'/'.
-                $properties['thumbnail_name'];
+            $response[0]['url'] = $this->getURLResponse($properties);
+            $response[0]['thumbnailUrl'] = $this->getTumbnailURLResponse($properties);
             $response[0]['deleteUrl'] = $response[0]['url'].'_DELETE';
             $response[0]['deleteType'] = 'DELETE';
             $response[0]['type'] = $properties['mimetype'];
@@ -300,6 +336,32 @@ class FARSymfony2UploadLib
         }
 
         return $response;
+    }
+
+    /**
+     * @param $properties
+     *
+     * @return string
+     */
+    private function getURLResponse($properties)
+    {
+        return $this->request->getBaseUrl().'/tmp/'.
+        $properties['session'].'/'.
+        $properties['id_session'].'/'.
+        $properties['name_uid'];
+    }
+
+    /**
+     * @param $properties
+     *
+     * @return string
+     */
+    private function getTumbnailURLResponse($properties)
+    {
+        return $this->request->getBaseUrl().'/tmp/'.
+        $properties['session'].'/'.
+        $properties['id_session'].'/'.
+        $properties['thumbnail_name'];
     }
 
     /**

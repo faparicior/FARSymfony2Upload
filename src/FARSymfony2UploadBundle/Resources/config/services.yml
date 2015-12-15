@@ -6,3 +6,11 @@ parameters:
         max_file_size: 100000
         max_files_upload: 2
         file_extensions_allowed: ["jpg", "png", "gif"]
+
+services:
+    far_symfony2_upload_bundle.far_symfony2_upload_lib.service:
+        class: FARSymfony2UploadBundle\Lib\FARSymfony2UploadLib
+        arguments:
+            - '@service_container'
+            - '@request_stack'
+            - '@session'

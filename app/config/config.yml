@@ -89,10 +89,18 @@ oneup_flysystem:
     adapters:
         local_adapter:
             local:
-                directory: %kernel.root_dir%/../web/
+                directory: %kernel.root_dir%/../web/tmp
+                writeFlags: ~
+                linkHandling: ~
+        remote_adapter:
+            local:
+                directory: %kernel.root_dir%/../web/images
                 writeFlags: ~
                 linkHandling: ~
     filesystems:
         my_filesystem:
             adapter: local_adapter
             mount: local_filesystem
+        remote_filesystem:
+            adapter: remote_adapter
+            mount: remote_filesystem

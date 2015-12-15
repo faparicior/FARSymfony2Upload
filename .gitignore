@@ -14,6 +14,7 @@
 .rules/
 .idea/
 /web/tmp/
+/web/images/
 app/config/parameters_local.yml
 symfony
 *~
