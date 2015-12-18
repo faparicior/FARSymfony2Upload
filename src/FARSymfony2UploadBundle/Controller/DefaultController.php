@@ -63,7 +63,13 @@ class DefaultController extends FOSRestController
      */
     public function saveAction($id_session)
     {
+        $php_session = $this->get('session')->getId();
         $FARUpload = $this->get('far_symfony2_upload_bundle.far_symfony2_upload_lib.service');
-        $response = $FARUpload->saveUpload($id_session);
+
+        // TODO: Obtener ficheros de origen
+        $files = $FARUpload->getListFilesLocal($php_session, $id_session);
+        $files = $FARUpload->syncFilesLocalRemote($files, $files, $php_session, $id_session);
+
+        //$response = $FARUpload->saveUpload($id_session);
     }
 }

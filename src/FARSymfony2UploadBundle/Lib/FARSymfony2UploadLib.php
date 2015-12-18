@@ -115,10 +115,6 @@ class FARSymfony2UploadLib
     {
         $php_session = $this->session->getId();
 
-        $listFiles = $this->getListFilesLocal($php_session, $id_session);
-
-        // TODO: Lanzar evento que gestione
-
         $local_route = $this->getRoutes('local');
         $this->syncFiles();
     }
@@ -129,16 +125,63 @@ class FARSymfony2UploadLib
      *
      * @return array()
      */
-    private function getListFilesLocal($php_session, $id_session)
+    public function getListFilesLocal($php_session, $id_session)
     {
-
+        $files = $this->local_filesystem->listContents($php_session.'/'.$id_session);
+        return $this->mappingFileSystem($files);
     }
 
-    private function syncFiles()
+    /**
+     * @param array $files
+     * @return array()
+     */
+    private function mappingFileSystem($files)
     {
+        /*
+        0 = {array} [8]
+         type = "file"
+         path = "d0i8nvm9p9h3v9k08vn8jl1qs7/123/Captura de pantalla de 2015-12-04 10:00:44.png"
+         timestamp = 1450435418
+         size = 43157
+         dirname = "d0i8nvm9p9h3v9k08vn8jl1qs7/123"
+         basename = "Captura de pantalla de 2015-12-04 10:00:44.png"
+         extension = "png"
+         filename = "Captura de pantalla de 2015-12-04 10:00:44"
+        */
+
+        $filesNew['type'] = $files['type'];
+        $filesNew['timestamp'] = $files['timestamp'];
+        $filesNew['size'] = $files['size'];
+        $filesNew['pathOrig'] = $files['path'];
+        $filesNew['dirnameOrig'] = $files['dirname'];
+        $filesNew['basenameOrig'] = $files['basename'];
+        $filesNew['extensionOrig'] = $files['extension'];
+        $filesNew['filenameOrig'] =$files['filename'];
+
+        $filesNew['pathDest'] = $files['path'];
+        $filesNew['dirnameDest'] = $files['dirname'];
+        $filesNew['basenameDest'] = $files['basename'];
+        $filesNew['extensionDest'] = $files['extension'];
+        $filesNew['filenameDest'] = $files['filename'];
+
+        return $filesNew;
+    }
+
+    /**
+     * @param $files
+     *
+     * @return array()
+     */
+    public function syncFilesLocalRemote($files)
+    {
+        foreach ($files as $file) {
+            $contents = $this->local_filesystem->read($file['pathOrig']);
+//            $this->remote_filesystem->write()
+        }
 
 //        $filesystem->delete($path.$image);
 //        $filesystem->delete($path.$this->getFileNameOrThumbnail($image, true));
+
     }
 
     /**
