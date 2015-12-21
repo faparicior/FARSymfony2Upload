@@ -112,19 +112,6 @@ class FARSymfony2UploadLib
     }
 
     /**
-     * @param $id_session
-     *
-     * @return array()
-     */
-    public function saveUpload($id_session)
-    {
-        $php_session = $this->session->getId();
-
-        $local_route = $this->getRoutes('local');
-        $this->syncFiles();
-    }
-
-    /**
      * @param $php_session
      * @param $id_session
      *
