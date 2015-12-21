@@ -62,6 +62,11 @@ class FARSymfony2UploadLib
             /* @var UploadedFile $file */
             foreach ($filebag as $file) {
                 $properties = $this->getFileProperties($file);
+
+                $properties['name'] = $this->discoverLocalTempFilename($properties);
+                $properties['name_uid'] = $properties['name'];
+                $properties['thumbnail_name'] = $this->getFileNameOrThumbnail($properties['name_uid'], true);
+
                 $validFile = $this->validateFile($properties);
                 if ($validFile[0] == true) {
                     $file->move($properties['temp_dir'], $properties['name_uid']);
@@ -127,12 +132,19 @@ class FARSymfony2UploadLib
      */
     public function getListFilesLocal($php_session, $id_session)
     {
+        $filesNew = array();
+
         $files = $this->local_filesystem->listContents($php_session.'/'.$id_session);
-        return $this->mappingFileSystem($files);
+        foreach ($files as $file) {
+            array_push($filesNew, $this->mappingFileSystem($file));
+        }
+
+        return $filesNew;
     }
 
     /**
      * @param array $files
+     *
      * @return array()
      */
     private function mappingFileSystem($files)
@@ -168,20 +180,123 @@ class FARSymfony2UploadLib
     }
 
     /**
-     * @param $files
+     * @param array $files
+     * @param string $path
      *
      * @return array()
      */
-    public function syncFilesLocalRemote($files)
+    public function setListFilesPathRemote($files, $path)
     {
+        $filesNew = array();
+
         foreach ($files as $file) {
-            $contents = $this->local_filesystem->read($file['pathOrig']);
-//            $this->remote_filesystem->write()
+            $file['pathDest'] = $path.'/'.$file['basenameOrig'];
+            $file['dirnameDest'] = $path;
+            array_push($filesNew, $file);
         }
 
-//        $filesystem->delete($path.$image);
-//        $filesystem->delete($path.$this->getFileNameOrThumbnail($image, true));
+        return $filesNew;
+    }
 
+    /**
+     * @param array $files
+     * @param boolean $rewriteFile
+     *
+     * @return array()
+     */
+    public function syncFilesLocalRemote($files, $rewriteFile)
+    {
+        $filesNew = array();
+
+        foreach ($files as $file) {
+            if ($this->remote_filesystem->has($file['pathDest']) && $rewriteFile) {
+                $contents = $this->local_filesystem->read($file['pathOrig']);
+                $file['saved'] = $this->remote_filesystem->update($file['pathDest'], $contents);
+                $file['duplicated'] = false;
+            } else {
+                $file = $this->discoverRemoteFilename($file);
+                $contents = $this->local_filesystem->read($file['pathOrig']);
+                $file['saved'] = $this->remote_filesystem->write($file['pathDest'], $contents);
+                $file['duplicated'] = true;
+            }
+            array_push($filesNew, $file);
+        }
+
+        return $filesNew;
+    }
+
+    /**
+     * @param array $file
+     *
+     * @return array()
+     */
+    public function discoverRemoteFilename($file)
+    {
+        $i = 1;
+
+        if ($this->remote_filesystem->has($file['dirnameDest'].'/'.
+                                          $file['filenameDest'].'.'.
+                                          $file['extensionDest'])) {
+            while ($this->remote_filesystem->has($file['dirnameDest'].'/'.
+                $file['filenameDest'].'('.$i.')'.'.'.
+                $file['extensionDest'])) {
+                $i++;
+            }
+            $file['filenameDest'] = $file['filenameDest'].'('.$i.')';
+            $file['basenameDest'] = $file['filenameDest'].'.'.
+                                    $file['extensionDest'];
+            $file['pathDest'] = $file['dirnameDest'].'/'.
+                                $file['basenameDest'];
+        }
+
+        return $file;
+    }
+
+    /**
+     * @param $properties
+     *
+     * @return string
+     */
+    public function discoverLocalTempFilename($properties)
+    {
+        $i = 1;
+        $filesystem = new Filesystem();
+
+        $fileProperties = pathinfo($properties['name_uid']);
+        $filename = $fileProperties['filename'];
+        $extension = $fileProperties['extension'];
+        $dirname = $properties['temp_dir'];
+
+        if ($filesystem->exists($dirname.'/'.
+                                $filename.'.'.
+                                $extension)) {
+            while ($filesystem->exists($dirname.'/'.
+                                       $filename.'('.$i.')'.'.'.
+                                       $extension)) {
+                $i++;
+            }
+
+            $filenameDef = $filename.'('.$i.')'.'.'.
+                           $extension;
+        } else {
+            $filenameDef = $properties['name_uid'];
+        }
+
+        return $filenameDef;
+    }
+
+    /**
+     * @param array $files
+     *
+     * @return array()
+     */
+    public function deleteFilesLocal($files)
+    {
+        foreach ($files as $file) {
+            $this->local_filesystem->delete($file['pathOrig']);
+        }
+
+        return $files;
     }
 
     /**
