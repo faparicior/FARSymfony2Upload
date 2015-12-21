@@ -39,12 +39,12 @@ class FARSymfony2UploadLib
         $this->local_filesystem = $this
             ->container
             ->get('oneup_flysystem.mount_manager')
-            ->getFilesystem('local_filesystem');
+            ->getFilesystem($this->parameters['local_filesystem']);
 
         $this->remote_filesystem = $this
             ->container
             ->get('oneup_flysystem.mount_manager')
-            ->getFilesystem('remote_filesystem');
+            ->getFilesystem($this->parameters['remote_filesystem']);
     }
 
     /**

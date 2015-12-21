@@ -6,6 +6,8 @@ parameters:
         max_file_size: 100000
         max_files_upload: 2
         file_extensions_allowed: ["jpg", "png", "gif"]
+        local_filesystem: 'local_filesystem'
+        remote_filesystem: 'remote_filesystem'
 
 services:
     far_symfony2_upload_bundle.far_symfony2_upload_lib.service:
