@@ -16,7 +16,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "FAR\\FARSymfony2FileUploader": "src/FARSymfony2UploadBundle"
+            "": "src/"
         }
     },
     "require": {

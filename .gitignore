@@ -18,3 +18,4 @@
 app/config/parameters_local.yml
 symfony
 *~
+composer.lock
