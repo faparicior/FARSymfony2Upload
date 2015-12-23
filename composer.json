@@ -1,5 +1,5 @@
 {
-    "name": "fernandoa/far-symfony2-uploader",
+    "name": "faparicior/far-symfony2-jquery-upload",
     "description": "Integrates JqueryUpload into Symfony2 with OneUpFlySystem",
     "type": "symfony-bundle",
     "keywords" : [
