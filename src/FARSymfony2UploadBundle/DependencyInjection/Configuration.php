@@ -20,6 +20,50 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('far_symfony2_upload');
 
+        $rootNode
+            ->children()
+                ->scalarNode('temp_path')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->scalarNode('thumbnail_directory_prefix')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->scalarNode('thumbnail_driver')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->scalarNode('thumbnail_size')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->integerNode('max_file_size')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->integerNode('max_files_upload')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->arrayNode('file_extensions_allowed')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                    ->requiresAtLeastOneElement()
+                        ->prototype('scalar')
+                    ->end()
+                ->end()
+                ->scalarNode('local_filesystem')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+                ->scalarNode('remote_filesystem')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
+            ->end()
+        ;
+
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for
         // more information on that topic.

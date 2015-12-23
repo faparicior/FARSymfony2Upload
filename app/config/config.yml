@@ -104,3 +104,14 @@ oneup_flysystem:
         remote_filesystem:
             adapter: remote_adapter
             mount: remote_filesystem
+
+far_symfony2_upload:
+    temp_path: "%kernel.root_dir%/../web/tmp"
+    thumbnail_directory_prefix: "thumbnails"
+    thumbnail_driver: "gd"
+    thumbnail_size: "80x80"
+    max_file_size: 100000
+    max_files_upload: 2
+    file_extensions_allowed: ["jpg", "png", "gif"]
+    local_filesystem: "local_filesystem"
+    remote_filesystem: "remote_filesystem"

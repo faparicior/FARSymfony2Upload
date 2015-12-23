@@ -50,7 +50,6 @@ class DefaultController extends FOSRestController
     public function deleteAction($php_session, $id_session, $image, $action)
     {
         $response = array();
-        // TODO: Manejar el error en caso de no encontrar, respuesta de borrado satisfactoria.
         $FARUpload = $this->get('far_symfony2_upload_bundle.far_symfony2_upload_lib.service');
         if ($FARUpload->evalDelete($action)) {
             $response = $FARUpload->processDelete($id_session, $php_session, $image);
@@ -75,7 +74,6 @@ class DefaultController extends FOSRestController
         $files = $FARUpload->getListFilesLocal($php_session, $id_session);
         $files = $FARUpload->setListFilesPathRemote($files, $id_session);
 
-        // TODO: Gestionar nombres duplicados
         $files = $FARUpload->syncFilesLocalRemote($files, true);
         $files = $FARUpload->deleteFilesLocal($files);
 

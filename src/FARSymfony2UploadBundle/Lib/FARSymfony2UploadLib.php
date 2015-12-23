@@ -15,7 +15,6 @@ class FARSymfony2UploadLib
     protected $options;
     protected $session;
     private $id_session;
-    private $parameters;
     private $container;
     private $request;
     private $trans;
@@ -33,18 +32,17 @@ class FARSymfony2UploadLib
         $this->container = $container;
         $this->request = $request_stack->getCurrentRequest();
         $this->options = $options;
-        $this->parameters = $this->container->getParameter('far_upload_bundle');
         $this->trans = $this->container->get('translator');
 
         $this->local_filesystem = $this
             ->container
             ->get('oneup_flysystem.mount_manager')
-            ->getFilesystem($this->parameters['local_filesystem']);
+            ->getFilesystem($this->container->getParameter('far_symfony2_upload.local_filesystem'));
 
         $this->remote_filesystem = $this
             ->container
             ->get('oneup_flysystem.mount_manager')
-            ->getFilesystem($this->parameters['remote_filesystem']);
+            ->getFilesystem($this->container->getParameter('far_symfony2_upload.remote_filesystem'));
     }
 
     /**
@@ -105,7 +103,7 @@ class FARSymfony2UploadLib
      */
     public function processDelete($id_session, $php_session, $image)
     {
-        $path = $this->parameters['temp_path'].'/'.$php_session.'/'.$id_session.'/';
+        $path = $this->container->getParameter('far_symfony2_upload.temp_path').'/'.$php_session.'/'.$id_session.'/';
         $response = $this->deleteFile($path, $image);
 
         return $response;
@@ -306,7 +304,7 @@ class FARSymfony2UploadLib
         $properties['mimetype'] = $file->getMimeType();
         $properties['session'] = $this->session->getId();
         $properties['id_session'] = $this->id_session;
-        $properties['temp_dir'] = $this->parameters['temp_path'].'/'.
+        $properties['temp_dir'] = $this->container->getParameter('far_symfony2_upload.temp_path').'/'.
             $this->session->getId().'/'.
             $properties['id_session'];
 
@@ -336,7 +334,7 @@ class FARSymfony2UploadLib
         if (!$this->validateUploadMaxFiles($properties)) {
             $result = array(false, $this->trans->trans(
                 'Too.much.files.for.upload',
-                array('%max_files_upload%' => $this->parameters['max_files_upload'])
+                array('%max_files_upload%' => $this->container->getParameter('far_symfony2_upload.max_files_upload'))
             ));
         }
 
@@ -350,7 +348,7 @@ class FARSymfony2UploadLib
      */
     private function validateFileSize($properties)
     {
-        if ($properties['size'] > $this->parameters['max_file_size']) {
+        if ($properties['size'] > $this->container->getParameter('far_symfony2_upload.max_file_size')) {
             return false;
         }
         return true;
@@ -364,7 +362,10 @@ class FARSymfony2UploadLib
     private function validateFileExtension($properties)
     {
 
-        if (array_search($properties['extension'], $this->parameters['file_extensions_allowed'])
+        if (array_search(
+            $properties['extension'],
+            $this->container->getParameter('far_symfony2_upload.file_extensions_allowed')
+        )
         ) {
             return true;
         }
@@ -380,13 +381,13 @@ class FARSymfony2UploadLib
     {
         $finder = new Finder();
         $countFiles = $finder->files()
-            ->in($this->parameters['temp_path'].'/'.
+            ->in($this->container->getParameter('far_symfony2_upload.temp_path').'/'.
                         $properties['session'].'/'.
                         $properties['id_session'])
             ->count();
 
         /* max_files_upload * 2 because the thumbnails */
-        if ($countFiles < $this->parameters['max_files_upload']*2) {
+        if ($countFiles < $this->container->getParameter('far_symfony2_upload.max_files_upload')*2) {
             return true;
         }
         return false;
@@ -454,7 +455,7 @@ class FARSymfony2UploadLib
         $extension = $original_name['extension'];
 
         if ($thumbnail) {
-            return $name.'_'.$this->parameters['thumbnail_size'].'.'.$extension;
+            return $name.'_'.$this->container->getParameter('far_symfony2_upload.thumbnail_size').'.'.$extension;
         } else {
             return $name;
         }
@@ -473,7 +474,7 @@ class FARSymfony2UploadLib
         if ($validFile[0]) {
             $response[0]['url'] = $this->getURLResponse($properties);
             $response[0]['thumbnailUrl'] = $this->getTumbnailURLResponse($properties);
-            $response[0]['deleteUrl'] = $response[0]['url'].'_DELETE';
+            $response[0]['deleteUrl'] =  $this->getURLResponseDelete($properties);
             $response[0]['deleteType'] = 'DELETE';
             $response[0]['type'] = $properties['mimetype'];
         } else {
@@ -501,6 +502,20 @@ class FARSymfony2UploadLib
      *
      * @return string
      */
+    private function getURLResponseDelete($properties)
+    {
+        return $this->request->getBaseUrl().'/FARSymfonyUpload/tmp/'.
+        $properties['session'].'/'.
+        $properties['id_session'].'/'.
+        $properties['name_uid'].
+        '_DELETE';
+    }
+
+    /**
+     * @param $properties
+     *
+     * @return string
+     */
     private function getTumbnailURLResponse($properties)
     {
         return $this->request->getBaseUrl().'/tmp/'.
@@ -515,7 +530,7 @@ class FARSymfony2UploadLib
     private function createThumbnail($properties)
     {
         // TODO: Generar miniaturas PS
-        $thumbnail_size = explode('x', $this->parameters['thumbnail_size']);
+        $thumbnail_size = explode('x', $this->container->getParameter('far_symfony2_upload.thumbnail_size'));
         $imagine = $this->getImagineEngine();
 
         $size = new \Imagine\Image\Box($thumbnail_size[0], $thumbnail_size[1]);
@@ -531,7 +546,7 @@ class FARSymfony2UploadLib
      */
     private function getImagineEngine()
     {
-        switch ($this->parameters['thumbnail_driver']) {
+        switch ($this->container->getParameter('far_symfony2_upload.thumbnail_driver')) {
             case 'gd':
                 $imagine = new \Imagine\Gd\Imagine();
                 break;

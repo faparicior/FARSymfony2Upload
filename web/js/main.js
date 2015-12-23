@@ -18,7 +18,7 @@ $(function () {
     $('#fileupload').fileupload({
         // Uncomment the following to send cross-domain cookies:
         //xhrFields: {withCredentials: true},
-        url: '/upload/123'
+        url: '/FARSymfonyUpload/upload/123'
     });
 
     // Enable iframe cross-domain access via redirect option:

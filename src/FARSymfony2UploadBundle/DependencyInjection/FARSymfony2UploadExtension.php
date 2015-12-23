@@ -22,6 +22,19 @@ class FARSymfony2UploadExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        $container->setParameter('far_symfony2_upload.temp_path', $config['temp_path']);
+        $container->setParameter(
+            'far_symfony2_upload.thumbnail_directory_prefix',
+            $config['thumbnail_directory_prefix']
+        );
+        $container->setParameter('far_symfony2_upload.thumbnail_driver', $config['thumbnail_driver']);
+        $container->setParameter('far_symfony2_upload.thumbnail_size', $config['thumbnail_size']);
+        $container->setParameter('far_symfony2_upload.max_file_size', $config['max_file_size']);
+        $container->setParameter('far_symfony2_upload.max_files_upload', $config['max_files_upload']);
+        $container->setParameter('far_symfony2_upload.file_extensions_allowed', $config['file_extensions_allowed']);
+        $container->setParameter('far_symfony2_upload.local_filesystem', $config['local_filesystem']);
+        $container->setParameter('far_symfony2_upload.remote_filesystem', $config['remote_filesystem']);
+
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
     }
