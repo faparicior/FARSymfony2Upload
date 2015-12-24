@@ -1,8 +1,0 @@
-far_symfony2_upload:
-    resource: "@FARSymfony2UploadBundle/Controller/"
-    type:     annotation
-    prefix:   /
-
-app:
-    resource: "@AppBundle/Controller/"
-    type:     annotation
