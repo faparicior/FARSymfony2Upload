@@ -61,7 +61,6 @@
     "config": {
         "bin-dir": "bin"
     },
-    "target-dir": "faparicior/far-symfony2-jquery-upload",
     "extra": {
         "symfony-app-dir": "app",
         "symfony-web-dir": "web",
