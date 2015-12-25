@@ -10,8 +10,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 /**
  * Class DefaultController
  * @package FARSymfony2UploadBundle\Controller
- *
- * @Route("/FARSymfonyUpload")
  */
 class DefaultController extends FOSRestController
 {
