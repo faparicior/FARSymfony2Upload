@@ -22,6 +22,9 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->scalarNode('prefix')
+                    ->isRequired()
+                ->end()
                 ->scalarNode('temp_path')
                     ->isRequired()
                     ->cannotBeEmpty()

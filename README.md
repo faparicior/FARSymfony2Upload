@@ -1,15 +1,16 @@
-FARFileUploader
-===============
+FARSymfony2Upload
+=================
 
-This bundle adds symfony2 integration to the [BlueImp/Jquery Upload Plugin](https://blueimp.github.io/jQuery-File-Upload/)
-
+This bundle adds symfony2 integration to the [BlueImp/Jquery Upload Plugin](https://github.com/blueimp/jQuery-File-Upload)
+ using [1up-lab/OneUpFlySystemBundle](https://github.com/1up-lab/OneupFlysystemBundle) filesystem abstraction layer.  
+ 
 Installation
 ============
 
 Step 1: Download the Bundle
 ---------------------------
 
-Open a command console, enter your project directory and execute the
+Open a command console, enter your project directory and execute the 
 following command to download the latest stable version of this bundle:
 
 ```bash
@@ -64,6 +65,7 @@ far_symfony2_upload:
 
 ```yaml
 far_symfony2_upload:
+    prefix: "farupload"
     temp_path: "%kernel.root_dir%/../web/tmp"
     thumbnail_directory_prefix: "thumbnails"
     thumbnail_driver: "gd"
@@ -75,7 +77,9 @@ far_symfony2_upload:
     remote_filesystem: "remote_filesystem"
 ```
 
-3) Add the config necessary for the OneUpFlySystem bundle in `app/config/config.yml`
+3) Enable the [1up-lab/OneUpFlySystemBundle](https://github.com/1up-lab/OneupFlysystemBundle)
+
+4) Add the config necessary for the OneUpFlySystem bundle in `app/config/config.yml`
 
 ```yaml
 oneup_flysystem:
@@ -99,7 +103,7 @@ oneup_flysystem:
             mount: remote_filesystem
 ```
 
-4) You can see the new routes added to your development.
+5) You can see the new routes added to your development.
 
 ```bash
 $ php app/console debug:router
@@ -128,22 +132,87 @@ the files involved in the upload.
 
 The `getListFilesLocal` function returns an array of files like this:
 
-TODO: Print the array
+```json
+{
+    "files": [
+        {
+            "type": "file",
+            "timestamp": 1451316072,
+            "size": 66664,
+            "pathOrig": "d0i8nvm9p9h3v9k08vn8jl1qs7/123/60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "dirnameOrig": "d0i8nvm9p9h3v9k08vn8jl1qs7/123",
+            "basenameOrig": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "extensionOrig": "jpeg",
+            "filenameOrig": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original",
+            "pathDest" = "d0i8nvm9p9h3v9k08vn8jl1qs7/123/60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg"
+            "dirnameDest" = "d0i8nvm9p9h3v9k08vn8jl1qs7/123"
+            "basenameDest": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "extensionDest": "jpeg",
+            "filenameDest": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original",
+        }
+    ]
+}
+```
 
 The `setListFilesPathRemote` function returns an array of files that 
 establishes origin and destination to filesystems:
 
-TODO: Print the array
+```json
+{
+    "files": [
+        {
+            "type": "file",
+            "timestamp": 1451316072,
+            "size": 66664,
+            "pathOrig": "d0i8nvm9p9h3v9k08vn8jl1qs7/123/60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "dirnameOrig": "d0i8nvm9p9h3v9k08vn8jl1qs7/123",
+            "basenameOrig": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "extensionOrig": "jpeg",
+            "filenameOrig": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original",
+            "pathDest": "123/60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "dirnameDest": "123",
+            "basenameDest": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "extensionDest": "jpeg",
+            "filenameDest": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original",
+        }
+    ]
+}
+```
+
 
 The `syncFilesLocalRemote` copy files from temporary to definitive storage.
 This function returns an array with the results. Include properties that  
 informs the duplicated or rewrited files.
  
-TODO: Print the array
+```json
+{
+    "files": [
+        {
+            "type": "file",
+            "timestamp": 1451316072,
+            "size": 66664,
+            "pathOrig": "d0i8nvm9p9h3v9k08vn8jl1qs7/123/60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "dirnameOrig": "d0i8nvm9p9h3v9k08vn8jl1qs7/123",
+            "basenameOrig": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "extensionOrig": "jpeg",
+            "filenameOrig": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original",
+            "pathDest": "123/60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "dirnameDest": "123",
+            "basenameDest": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
+            "extensionDest": "jpeg",
+            "filenameDest": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original",
+            "saved": true,
+            "duplicated": true
+        }
+    ]
+}
+```
 
-The `deleteFilesLocal` clean the temporary files. And returns an array with the results.
+The `deleteFilesLocal` cleans the temporary files. And returns the same 
+array that `syncFilesLocalRemote`.
 
-TODO: Print the array
+You can modify `pathDest`, `dirnameDest`, `basenameDest`, `extensionDest`, `filenameDest` elements
+in the array before send to call `syncFilesLocalRemote` to save the files in another destination.
 
 
 ```php

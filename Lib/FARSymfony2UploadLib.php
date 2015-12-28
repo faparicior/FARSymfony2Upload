@@ -194,7 +194,8 @@ class FARSymfony2UploadLib
         $filesNew = array();
 
         foreach ($files as $file) {
-            if ($this->remote_filesystem->has($file['pathDest']) && $rewriteFile) {
+            $exist = $this->remote_filesystem->has($file['pathDest']);
+            if (($exist && $rewriteFile) || !$exist) {
                 $contents = $this->local_filesystem->read($file['pathOrig']);
                 $file['saved'] = $this->remote_filesystem->update($file['pathDest'], $contents);
                 $file['duplicated'] = false;
@@ -277,9 +278,9 @@ class FARSymfony2UploadLib
      */
     public function deleteFilesLocal($files)
     {
-        foreach ($files as $file) {
-            $this->local_filesystem->delete($file['pathOrig']);
-        }
+        $file = array_shift($files);
+        $this->local_filesystem->deleteDir($file['dirnameOrig']);
+        array_unshift($files, $file);
 
         return $files;
     }
@@ -379,18 +380,26 @@ class FARSymfony2UploadLib
      */
     private function validateUploadMaxFiles($properties)
     {
-        $finder = new Finder();
-        $countFiles = $finder->files()
-            ->in($this->container->getParameter('far_symfony2_upload.temp_path').'/'.
-                        $properties['session'].'/'.
-                        $properties['id_session'])
-            ->count();
+        $valid = false;
+        $directoryFindFiles = $this->container->getParameter('far_symfony2_upload.temp_path') . '/' .
+                              $properties['session'] . '/' .
+                              $properties['id_session'];
 
-        /* max_files_upload * 2 because the thumbnails */
-        if ($countFiles < $this->container->getParameter('far_symfony2_upload.max_files_upload')*2) {
-            return true;
+        $fs = new Filesystem();
+        if ($fs->exists($directoryFindFiles)) {
+            $finder = new Finder();
+            $countFiles = $finder->files()
+                ->in($directoryFindFiles)
+                ->count();
+
+            /* max_files_upload * 2 because the thumbnails */
+            if ($countFiles < $this->container->getParameter('far_symfony2_upload.max_files_upload') * 2) {
+                $valid = true;
+            }
+        } else {
+            $valid = true;
         }
-        return false;
+        return $valid;
     }
 
     /**
@@ -492,9 +501,9 @@ class FARSymfony2UploadLib
     private function getURLResponse($properties)
     {
         return $this->request->getBaseUrl().'/tmp/'.
-        $properties['session'].'/'.
-        $properties['id_session'].'/'.
-        $properties['name_uid'];
+               $properties['session'].'/'.
+               $properties['id_session'].'/'.
+               $properties['name_uid'];
     }
 
     /**
@@ -504,11 +513,13 @@ class FARSymfony2UploadLib
      */
     private function getURLResponseDelete($properties)
     {
-        return $this->request->getBaseUrl().'/FARSymfonyUpload/tmp/'.
-        $properties['session'].'/'.
-        $properties['id_session'].'/'.
-        $properties['name_uid'].
-        '_DELETE';
+        return $this->request->getBaseUrl().'/'.
+               $this->container->getParameter('far_symfony2_upload.prefix').
+               '/tmp/'.
+               $properties['session'].'/'.
+               $properties['id_session'].'/'.
+               $properties['name_uid'].
+               '_DELETE';
     }
 
     /**
