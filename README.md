@@ -110,7 +110,6 @@ $ php app/console debug:router
 
 farsymfony2upload_default_upload POST        ANY    ANY  /farupload/upload/{id_session}
 farsymfony2upload_default_delete POST|DELETE ANY    ANY  /farupload/tmp/{php_session}/{id_session}/{image}_{action}
-farsymfony2upload_default_save   POST        ANY    ANY  /farupload/save/{id_session}
 ```
 
 Usage
