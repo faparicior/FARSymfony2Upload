@@ -144,8 +144,8 @@ The `getListFilesLocal` function returns an array of files like this:
             "basenameOrig": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
             "extensionOrig": "jpeg",
             "filenameOrig": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original",
-            "pathDest" = "d0i8nvm9p9h3v9k08vn8jl1qs7/123/60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg"
-            "dirnameDest" = "d0i8nvm9p9h3v9k08vn8jl1qs7/123"
+            "pathDest": "d0i8nvm9p9h3v9k08vn8jl1qs7/123/60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg"
+            "dirnameDest": "d0i8nvm9p9h3v9k08vn8jl1qs7/123"
             "basenameDest": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original.jpeg",
             "extensionDest": "jpeg",
             "filenameDest": "60aca821-0104-405c-8a3f-a1ac8a0041ff-original",
