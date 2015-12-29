@@ -16,7 +16,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "faparicior\\Bundle\\FARSymfony2Upload\\": ""
+            "FARSymfony2Upload\\": ""
         }
     },
     "require": {
