@@ -32,8 +32,10 @@ class FARSymfony2UploadLib
         $this->container = $container;
         $this->request = $request_stack->getCurrentRequest();
         $this->options = $options;
+        // TODO: Inject
         $this->trans = $this->container->get('translator');
 
+        // TODO: Inject
         $this->local_filesystem = $this
             ->container
             ->get('oneup_flysystem.mount_manager')
