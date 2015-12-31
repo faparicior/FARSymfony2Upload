@@ -1,6 +1,6 @@
 <?php
 
-namespace FARSymfony2UploadBundle\Lib;
+namespace faparicior\FARSymfony2UploadBundle\Lib;
 
 use Symfony\Component\DependencyInjection\ContainerInterface as Container;
 use Symfony\Component\Filesystem\Filesystem;
@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Translation\Translator;
 
 class FARSymfony2UploadLib
 {
@@ -18,33 +19,60 @@ class FARSymfony2UploadLib
     private $container;
     private $request;
     private $trans;
+    private $params;
     private $local_filesystem;
     private $remote_filesystem;
 
     /**
-     * @param Container $container
+     * @param Translator $translator
      * @param RequestStack $request_stack
+     * @param Session $session
+     * @param string $param_prefix
+     * @param string $param_temp_path
+     * @param string $param_thumbnail_directory_prefix
+     * @param string $param_thumbnail_driver
+     * @param string $param_thumbnail_size
+     * @param string $param_max_file_size
+     * @param string $param_max_files_upload
+     * @param string $param_file_extensions_allowed
+     * @param string $local_filesystem
+     * @param string $remote_filesystem
      * @param mixed $options
      */
-    public function __construct(Container $container, RequestStack $request_stack, Session $session, $options = null)
-    {
+    public function __construct(
+        Translator $translator,
+        RequestStack $request_stack,
+        Session $session,
+        $param_prefix,
+        $param_temp_path,
+        $param_thumbnail_directory_prefix,
+        $param_thumbnail_driver,
+        $param_thumbnail_size,
+        $param_max_file_size,
+        $param_max_files_upload,
+        $param_file_extensions_allowed,
+        $local_filesystem,
+        $remote_filesystem,
+        $options = null
+    ) {
         $this->session = $session;
-        $this->container = $container;
+//        $this->container = $container;
         $this->request = $request_stack->getCurrentRequest();
         $this->options = $options;
-        // TODO: Inject
-        $this->trans = $this->container->get('translator');
+        $this->trans = $translator;
 
-        // TODO: Inject
-        $this->local_filesystem = $this
-            ->container
-            ->get('oneup_flysystem.mount_manager')
-            ->getFilesystem($this->container->getParameter('far_symfony2_upload.local_filesystem'));
+        $this->params['param_prefix'] = $param_prefix;
+        $this->params['param_temp_path'] = $param_temp_path;
+        $this->params['param_thumbnail_directory_prefix'] = $param_thumbnail_directory_prefix;
+        $this->params['param_thumbnail_driver'] = $param_thumbnail_driver;
+        $this->params['param_thumbnail_size'] = $param_thumbnail_size;
+        $this->params['param_max_file_size'] = $param_max_file_size;
+        $this->params['param_max_files_upload'] = $param_max_files_upload;
+        $this->params['param_file_extensions_allowed'] = $param_file_extensions_allowed;
 
-        $this->remote_filesystem = $this
-            ->container
-            ->get('oneup_flysystem.mount_manager')
-            ->getFilesystem($this->container->getParameter('far_symfony2_upload.remote_filesystem'));
+        $this->local_filesystem = $local_filesystem;
+        $this->remote_filesystem = $remote_filesystem;
+
     }
 
     /**
@@ -105,7 +133,7 @@ class FARSymfony2UploadLib
      */
     public function processDelete($id_session, $php_session, $image)
     {
-        $path = $this->container->getParameter('far_symfony2_upload.temp_path').'/'.$php_session.'/'.$id_session.'/';
+        $path = $this->params['param_temp_path'].'/'.$php_session.'/'.$id_session.'/';
         $response = $this->deleteFile($path, $image);
 
         return $response;
@@ -307,7 +335,7 @@ class FARSymfony2UploadLib
         $properties['mimetype'] = $file->getMimeType();
         $properties['session'] = $this->session->getId();
         $properties['id_session'] = $this->id_session;
-        $properties['temp_dir'] = $this->container->getParameter('far_symfony2_upload.temp_path').'/'.
+        $properties['temp_dir'] = $this->params['param_temp_path'].'/'.
             $this->session->getId().'/'.
             $properties['id_session'];
 
@@ -337,7 +365,7 @@ class FARSymfony2UploadLib
         if (!$this->validateUploadMaxFiles($properties)) {
             $result = array(false, $this->trans->trans(
                 'Too.much.files.for.upload',
-                array('%max_files_upload%' => $this->container->getParameter('far_symfony2_upload.max_files_upload'))
+                array('%max_files_upload%' => $this->params['param_max_files_upload'])
             ));
         }
 
@@ -351,7 +379,7 @@ class FARSymfony2UploadLib
      */
     private function validateFileSize($properties)
     {
-        if ($properties['size'] > $this->container->getParameter('far_symfony2_upload.max_file_size')) {
+        if ($properties['size'] > $this->params['param_max_file_size']) {
             return false;
         }
         return true;
@@ -367,7 +395,7 @@ class FARSymfony2UploadLib
 
         if (array_search(
             $properties['extension'],
-            $this->container->getParameter('far_symfony2_upload.file_extensions_allowed')
+            $this->params['param_file_extensions_allowed']
         )
         ) {
             return true;
@@ -383,7 +411,7 @@ class FARSymfony2UploadLib
     private function validateUploadMaxFiles($properties)
     {
         $valid = false;
-        $directoryFindFiles = $this->container->getParameter('far_symfony2_upload.temp_path') . '/' .
+        $directoryFindFiles = $this->params['param_temp_path'] . '/' .
                               $properties['session'] . '/' .
                               $properties['id_session'];
 
@@ -395,7 +423,7 @@ class FARSymfony2UploadLib
                 ->count();
 
             /* max_files_upload * 2 because the thumbnails */
-            if ($countFiles < $this->container->getParameter('far_symfony2_upload.max_files_upload') * 2) {
+            if ($countFiles < $this->params['param_max_files_upload'] * 2) {
                 $valid = true;
             }
         } else {
@@ -466,7 +494,7 @@ class FARSymfony2UploadLib
         $extension = $original_name['extension'];
 
         if ($thumbnail) {
-            return $name.'_'.$this->container->getParameter('far_symfony2_upload.thumbnail_size').'.'.$extension;
+            return $name.'_'.$this->params['param_thumbnail_size'].'.'.$extension;
         } else {
             return $name;
         }
@@ -516,7 +544,7 @@ class FARSymfony2UploadLib
     private function getURLResponseDelete($properties)
     {
         return $this->request->getBaseUrl().'/'.
-               $this->container->getParameter('far_symfony2_upload.prefix').
+               $this->params['param_prefix'].
                '/tmp/'.
                $properties['session'].'/'.
                $properties['id_session'].'/'.
@@ -543,7 +571,7 @@ class FARSymfony2UploadLib
     private function createThumbnail($properties)
     {
         // TODO: Generar miniaturas PS
-        $thumbnail_size = explode('x', $this->container->getParameter('far_symfony2_upload.thumbnail_size'));
+        $thumbnail_size = explode('x', $this->params['param_thumbnail_size']);
         $imagine = $this->getImagineEngine();
 
         $size = new \Imagine\Image\Box($thumbnail_size[0], $thumbnail_size[1]);
@@ -559,7 +587,7 @@ class FARSymfony2UploadLib
      */
     private function getImagineEngine()
     {
-        switch ($this->container->getParameter('far_symfony2_upload.thumbnail_driver')) {
+        switch ($this->params['param_thumbnail_driver']) {
             case 'gd':
                 $imagine = new \Imagine\Gd\Imagine();
                 break;

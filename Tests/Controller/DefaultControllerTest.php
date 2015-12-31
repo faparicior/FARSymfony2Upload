@@ -1,6 +1,6 @@
 <?php
 
-namespace FARSymfony2UploadBundle\Tests\Controller;
+namespace faparicior\FARSymfony2UploadBundle\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 

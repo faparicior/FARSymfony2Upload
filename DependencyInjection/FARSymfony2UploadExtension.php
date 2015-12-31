@@ -1,6 +1,6 @@
 <?php
 
-namespace FARSymfony2UploadBundle\DependencyInjection;
+namespace faparicior\FARSymfony2UploadBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;

@@ -1,6 +1,6 @@
 <?php
 
-namespace FARSymfony2UploadBundle;
+namespace faparicior\FARSymfony2UploadBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

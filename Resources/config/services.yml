@@ -1,7 +1,33 @@
 services:
-    far_symfony2_upload_bundle.far_symfony2_upload_lib.service:
-        class: FARSymfony2UploadBundle\Lib\FARSymfony2UploadLib
+    far_oneup_flysystem.mount_manager_factory:
+        class: Oneup\FlysystemBundle\DependencyInjection\OneupFlysystemExtension
+
+    far_oneup_flysystem.mount_manager_local:
+        class: League\Flysystem\MountManager
+        factory: [getFilesystem, ]
         arguments:
-            - '@service_container'
+            - "%far_symfony2_upload.local_filesystem%"
+
+    far_oneup_flysystem.mount_manager_remote:
+        class: League\Flysystem\MountManager
+        factory: [getFilesystem, ]
+        arguments:
+            - "%far_symfony2_upload.remote_filesystem%"
+
+    far_symfony2_upload_bundle.far_symfony2_upload_lib.service:
+        class: faparicior\FARSymfony2UploadBundle\Lib\FARSymfony2UploadLib
+        arguments:
+            - '@translator'
             - '@request_stack'
             - '@session'
+            - '%far_symfony2_upload.prefix%'
+            - '%far_symfony2_upload.temp_path%'
+            - '%far_symfony2_upload.thumbnail_directory_prefix%'
+            - '%far_symfony2_upload.thumbnail_driver%'
+            - '%far_symfony2_upload.thumbnail_size%'
+            - '%far_symfony2_upload.max_file_size%'
+            - '%far_symfony2_upload.max_files_upload%'
+            - '%far_symfony2_upload.file_extensions_allowed%'
+            - '@far_oneup_flysystem.mount_manager_local'
+            - '@far_oneup_flysystem.mount_manager_remote'
+            - '@oneup_flysystem.mount_manager'

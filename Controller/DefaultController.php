@@ -1,6 +1,6 @@
 <?php
 
-namespace FARSymfony2UploadBundle\Controller;
+namespace faparicior\FARSymfony2UploadBundle\Controller;
 
 use FOS\RestBundle\Controller\FOSRestController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
