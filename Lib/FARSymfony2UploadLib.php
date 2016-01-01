@@ -2,7 +2,7 @@
 
 namespace faparicior\FARSymfony2UploadBundle\Lib;
 
-use Symfony\Component\DependencyInjection\ContainerInterface as Container;
+use League\Flysystem\MountManager;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -16,7 +16,6 @@ class FARSymfony2UploadLib
     protected $options;
     protected $session;
     private $id_session;
-    private $container;
     private $request;
     private $trans;
     private $params;
@@ -37,6 +36,7 @@ class FARSymfony2UploadLib
      * @param string $param_file_extensions_allowed
      * @param string $local_filesystem
      * @param string $remote_filesystem
+     * @param MountManager $oneup_mountmanager
      * @param mixed $options
      */
     public function __construct(
@@ -53,10 +53,10 @@ class FARSymfony2UploadLib
         $param_file_extensions_allowed,
         $local_filesystem,
         $remote_filesystem,
+        $oneup_mountmanager,
         $options = null
     ) {
         $this->session = $session;
-//        $this->container = $container;
         $this->request = $request_stack->getCurrentRequest();
         $this->options = $options;
         $this->trans = $translator;
@@ -70,9 +70,8 @@ class FARSymfony2UploadLib
         $this->params['param_max_files_upload'] = $param_max_files_upload;
         $this->params['param_file_extensions_allowed'] = $param_file_extensions_allowed;
 
-        $this->local_filesystem = $local_filesystem;
-        $this->remote_filesystem = $remote_filesystem;
-
+        $this->local_filesystem = $oneup_mountmanager->getFileSystem($local_filesystem);
+        $this->remote_filesystem = $oneup_mountmanager->getFileSystem($remote_filesystem);
     }
 
     /**
@@ -227,7 +226,11 @@ class FARSymfony2UploadLib
             $exist = $this->remote_filesystem->has($file['pathDest']);
             if (($exist && $rewriteFile) || !$exist) {
                 $contents = $this->local_filesystem->read($file['pathOrig']);
-                $file['saved'] = $this->remote_filesystem->update($file['pathDest'], $contents);
+                if (!$exist) {
+                    $file['saved'] = $this->remote_filesystem->write($file['pathDest'], $contents);
+                } else {
+                    $file['saved'] = $this->remote_filesystem->update($file['pathDest'], $contents);
+                }
                 $file['duplicated'] = false;
             } else {
                 $file = $this->discoverRemoteFilename($file);

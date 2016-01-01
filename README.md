@@ -39,7 +39,7 @@ class AppKernel extends Kernel
         $bundles = array(
             // ...
 
-            new FARSymfony2UploadBundle\FARSymfony2UploadBundle(),
+            new faparicior\FARSymfony2UploadBundle\FARSymfony2UploadBundle(),
         );
 
         // ...
