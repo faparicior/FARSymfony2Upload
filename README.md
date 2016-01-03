@@ -2,7 +2,10 @@ FARSymfony2Upload
 =================
 
 This bundle adds symfony2 integration to the [BlueImp/Jquery Upload Plugin](https://github.com/blueimp/jQuery-File-Upload)
- using [1up-lab/OneUpFlySystemBundle](https://github.com/1up-lab/OneupFlysystemBundle) filesystem abstraction layer.  
+ using [1up-lab/OneUpFlySystemBundle](https://github.com/1up-lab/OneupFlysystemBundle) filesystem abstraction layer.
+   
+The project [faparicior/FARSymfony2UploadDemo](https://github.com/faparicior/FARSymfony2UploadDemo) is a 
+demo to test this Bundle.
  
 Installation
 ============
