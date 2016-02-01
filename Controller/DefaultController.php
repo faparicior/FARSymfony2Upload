@@ -35,7 +35,7 @@ class DefaultController extends FOSRestController
     }
 
     /**
-     * @Route("/tmp/{php_session}/{id_session}/{image}_{action}")
+     * @Route("/tmp/{php_session}/{id_session}/{image}/{action}")
      * @Method({"POST", "DELETE"})
      *
      * @param string $php_session

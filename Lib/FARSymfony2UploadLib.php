@@ -150,7 +150,18 @@ class FARSymfony2UploadLib
 
         $files = $this->local_filesystem->listContents($php_session.'/'.$id_session);
         foreach ($files as $file) {
-            array_push($filesNew, $this->mappingFileSystem($file));
+            if ($file['type'] == 'file') {
+                array_push($filesNew, $this->mappingFileSystem($file, 'file'));
+            }
+        }
+
+        $files = $this->local_filesystem->listContents($php_session.'/'.
+                                                       $id_session.'/'.
+                                                       $this->params['param_thumbnail_directory_prefix']);
+        foreach ($files as $file) {
+            if ($file['type'] == 'file') {
+                array_push($filesNew, $this->mappingFileSystem($file, 'thumbnail'));
+            }
         }
 
         return $filesNew;
@@ -158,10 +169,11 @@ class FARSymfony2UploadLib
 
     /**
      * @param array $files
+     * @param string $type
      *
      * @return array()
      */
-    private function mappingFileSystem($files)
+    private function mappingFileSystem($files, $type)
     {
         /*
         0 = {array} [8]
@@ -183,8 +195,12 @@ class FARSymfony2UploadLib
         $filesNew['basenameOrig'] = $files['basename'];
         $filesNew['extensionOrig'] = $files['extension'];
         $filesNew['filenameOrig'] =$files['filename'];
-
         $filesNew['pathDest'] = $files['path'];
+        if ($type == 'file') {
+            $filesNew['thumbnail'] = false;
+        } else {
+            $filesNew['thumbnail'] = true;
+        }
         $filesNew['dirnameDest'] = $files['dirname'];
         $filesNew['basenameDest'] = $files['basename'];
         $filesNew['extensionDest'] = $files['extension'];
@@ -204,6 +220,9 @@ class FARSymfony2UploadLib
         $filesNew = array();
 
         foreach ($files as $file) {
+            if ($file['thumbnail'] == true) {
+                $path = $path.'/'.$this->params['param_thumbnail_directory_prefix'];
+            }
             $file['pathDest'] = $path.'/'.$file['basenameOrig'];
             $file['dirnameDest'] = $path;
             array_push($filesNew, $file);
@@ -426,7 +445,7 @@ class FARSymfony2UploadLib
                 ->count();
 
             /* max_files_upload * 2 because the thumbnails */
-            if ($countFiles < $this->params['param_max_files_upload'] * 2) {
+            if ($countFiles < $this->params['param_max_files_upload']) {
                 $valid = true;
             }
         } else {
@@ -497,7 +516,9 @@ class FARSymfony2UploadLib
         $extension = $original_name['extension'];
 
         if ($thumbnail) {
-            return $name.'_'.$this->params['param_thumbnail_size'].'.'.$extension;
+            return $this->params['param_thumbnail_directory_prefix'].'/'.
+                          $name.'_'.
+                          $this->params['param_thumbnail_size'].'.'.$extension;
         } else {
             return $name;
         }
@@ -551,8 +572,8 @@ class FARSymfony2UploadLib
                '/tmp/'.
                $properties['session'].'/'.
                $properties['id_session'].'/'.
-               $properties['name_uid'].
-               '_DELETE';
+               $properties['name_uid'].'/'.
+               'DELETE';
     }
 
     /**
@@ -580,9 +601,15 @@ class FARSymfony2UploadLib
         $size = new \Imagine\Image\Box($thumbnail_size[0], $thumbnail_size[1]);
         $mode = \Imagine\Image\ImageInterface::THUMBNAIL_INSET;
 
-        $imagine->open($properties['temp_dir'].'/'.$properties['name_uid'])
-            ->thumbnail($size, $mode)
-            ->save($properties['temp_dir'].'/'.$properties['thumbnail_name']);
+        $fs = new Filesystem();
+        $fs->mkdir($properties['temp_dir'].'/'.
+                   $this->params['param_thumbnail_directory_prefix']);
+
+        $imagine->open($properties['temp_dir'].'/'.
+                       $properties['name_uid'])
+                ->thumbnail($size, $mode)
+                ->save($properties['temp_dir'].'/'.
+                       $properties['thumbnail_name']);
     }
 
     /**
